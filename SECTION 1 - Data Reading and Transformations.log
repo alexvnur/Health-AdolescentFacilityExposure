@@ -1,0 +1,207 @@
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Papers\Health and Waiver\Log Output\SECTION 1 - Data Reading and Transformations.log
+  log type:  text
+ opened on:  26 May 2025, 09:38:34
+
+. 
+. *READING DATA
+. use "D:\Papers\Health and Waiver\Data\Cleaned\HealthWaiver_Cleaned.dta", clear
+(Research on Pathways to Desistance [Maricopa County, AZ and Philadelphia County,)
+
+.         // cleaned PtD health-waiver data
+.         
+. *CONDENSING TO PERSON-LEVEL
+. keep if wave == 0
+(13,540 observations deleted)
+
+. 
+. *RECODING EXPOSURE VARIABLE
+. recode TRANSFER 0=1 1=2
+(448 changes made to TRANSFER)
+
+.         replace TRANSFER = 0 if TRANSFER == .n
+(794 real changes made)
+
+.         // .n indicates no exposure to juvenile or adult facility during adolescence
+.         // variable code:
+.         //              0 = No exposure to carceral facilities during adolecence
+.         //              1 = Exposure to only juvenile facilities during adolescence
+.         //              2 = Exposure to adult facilities during adolescence
+.         
+. *TRANSFORMING SKEWED OUTCOMES
+. sum HEALTH_avg DEP_avg ANX_avg, d
+
+                         HEALTH_avg
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            2              1
+ 5%         2.25              1
+10%          2.5            1.5       Obs               1,275
+25%            3           1.75       Sum of wgt.       1,275
+
+50%          3.2                      Mean           3.183561
+                        Largest       Std. dev.      .5078366
+75%          3.5              4
+90%     3.833333              4       Variance        .257898
+95%            4              4       Skewness      -.3709311
+99%            4              4       Kurtosis       3.024692
+
+                           DEP_avg
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               1,280
+25%     .0566667              0       Sum of wgt.       1,280
+
+50%     .2219445                      Mean           .3692679
+                        Largest       Std. dev.      .4331421
+75%           .5       2.501429
+90%     .9515278          2.566       Variance       .1876121
+95%        1.242          2.665       Skewness       1.951816
+99%     2.025714         2.6875       Kurtosis       7.677084
+
+                           ANX_avg
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               1,280
+25%     .0566667              0       Sum of wgt.       1,280
+
+50%          .17                      Mean           .2965504
+                        Largest       Std. dev.      .3661334
+75%     .4119444          2.366
+90%     .7166666       2.498571       Variance       .1340537
+95%       .97875              3       Skewness        2.85128
+99%         1.72           3.83       Kurtosis       16.70974
+
+. 
+. *gladder DEP_avg 
+. *gladder ANX_avg
+. 
+. gen log_DEP_avg = ln(DEP_avg + 0.0001)
+(74 missing values generated)
+
+. gen log_ANX_avg = ln(ANX_avg + 0.0001)
+(74 missing values generated)
+
+.         // natural log with small constant
+. 
+. *gladder log_DEP_avg 
+. *gladder log_ANX_avg
+. 
+. gen sqrt_DEP_avg = sqrt(DEP_avg)
+(74 missing values generated)
+
+. gen sqrt_ANX_avg = sqrt(ANX_avg)
+(74 missing values generated)
+
+.         // square root; preferred transformation in gladder
+. 
+. *gladder sqrt_DEP_avg 
+. *gladder sqrt_ANX_avg
+. 
+. *DISCRETE VARIABLES FOR RACE/ETHNICITY
+. tab SETHN_R, gen(race)
+
+    S0 DEM: |
+   Subjects |
+Ethnicity - |
+    Recoded |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   1. White |        274       20.24       20.24
+   2. Black |        561       41.43       61.67
+3. Hispanic |        454       33.53       95.20
+   4. Other |         65        4.80      100.00
+------------+-----------------------------------
+      Total |      1,354      100.00
+
+.         rename (race1 race2 race3 race4) (White Black Hispanic Other)
+
+.         label var White "White race/ethnicity"
+
+.         label var Black "Black race/ethnicity"
+
+.         label var Hispanic "Hispanic race/ethnicity"
+
+.         label var Other "Other race/ethnicity"
+
+.         
+. *PARING DOWN TO NECESSARY VARIABLES
+. keep TRANSFER HEALTH_avg DEP_avg ANX_avg SSITE SAGE SSGEND SETHN_R SPAEDUC ///
+>         SREL198 AGE_1_PRI_B4_BL SSROPRV SEXPVIC SHEADIN SREL149 SDEM33 SDEM42 ///
+>         SCADPRE SDEM49 SROUT SPRINFL SSOCAP2 SNEISOC SMORDIS SMOTSUC SSUPAGG ///
+>         SAGGOFF SNEARPRO SINCOFF SDRUGOFF SIMPULS SFUTURE SMEDSEV SCONSID ///
+>         log_DEP_avg log_ANX_avg sqrt_DEP_avg sqrt_ANX_avg White Black Hispanic Other ///
+>         SWALDEN SCOMIN SDEM26B SEXPWIT SFRDQLT SSOCCST SPERRWD
+
+. 
+. /*******************************************************************************
+> *****************************VARIABLES FOR ANALYSIS*****************************
+> ********************************************************************************
+> 
+> Var Type                        |        Var                      |             Var Explained
+> --------------------+---------------------+---------------------------------------
+> Treatment                       | TRANSFER                        | Facility exposure
+> Treatment                       | TRANSFER_five           | Facility exposure of 5+ days (sensitivity)
+> --------------------+---------------------+---------------------------------------
+> DV                                      | HEALTH_avg              | Average self-rated health in adulthood
+> DV                                      | DEP_avg                         | Average depression symptoms in adulthood
+> DV                                      | ANX_avg                         | Average anxious symptoms in adulthood
+> --------------------+---------------------+---------------------------------------
+> DV (transformed)        | log_DEP_avg             | Average depression symptoms in adulthood (ln)
+> DV (transformed)        | log_ANX_avg             | Average anxious symptoms in adulthood (ln)
+> DV (transformed)        | sqrt_DEP_avg            | Average depression symptoms in adulthood (sqrt)
+> DV (transformed)        | sqrt_ANX_avg            | Average anxious symptoms in adulthood (sqrt)
+> --------------------+---------------------+---------------------------------------
+> PRE-TREATMENT COVARIATES
+> --------------------+---------------------+---------------------------------------
+> Covariate                       | SSITE                           | 1 = Phoenix, 0 = Philadelphia
+> Covariate                       | SAGE                            | Age, continous 
+> Covariate                       | SETHN_R                         | Race/ethnicity
+> Covariate                       | SSGEND                          | 1 = Male
+> Covariate                       | SBIO                            | Two biological parents in home
+> Covariate                       | SPAEDUC                         | Average parents' education
+> Covariate                       | SREL198                         | Anyone in family been in jail or prison 
+> Covariate                       | AGE_1_PRI_B4_BL         | Official record: Age at 1st prior
+> Covariate                       | SSROPRV                         | Total Offending Variety Proportion - Ever
+> Covariate                       | SEXPVIC                         | Prior victimization score [0-6]
+> Covariate                       | SUBABU                          | Any prior substance abuse symptoms
+> Covariate                       | SHEADIN                         | Prior head injury
+> Covariate                       | SANYIN                          | Any Overnight Stays in a Facility
+> Covariate                       | SBSIPSY                         | Psychotocism scale [0-4]
+> Covariate                       | SREL149                         | Ever run away from where you were living
+> Covariate                       | SDEM33                          | Ever been expelled
+> Covariate                       | SDEM42                          | Have you ever failed a class
+> Covariate                       | SREL75                          | Any children
+> Covariate                       | SCADPRE                         | Domains of Social Support
+> Covariate                       | SDEM49                          | Employed currently or before coming to facility
+> Covariate                       | SROUT                           | Unsupervised Routine Activities
+> Covariate                       | SPTSDSYMCNT             | PTSD count of symptoms
+> Covariate                       | SPRINFL                         | Antisocial peer influence
+> Covariate                       | SSOCAP2                         | Social integration scale
+> Covariate                       | SNEISOC                         | Neighborhood social disorganization
+> Covariate                       | SMORDIS                         | Moral Disengagement Overall
+> Covariate                       | SMOTSUC                         | Motivation to Succeed
+> Covariate                       | SSUPAGG                         | Suppression of Aggression
+> Covariate                       | SAGGOFF                         | Aggressive Offending Frequency in Past Year
+> Covariate                       | SNEARPRO                        | Count of early onset problems
+> Covariate                       | SINCOFF                         | Income Offending Frequency in Past Year - No Drug
+> Covariate                       | SDRUGOFF                        | Sold marijuana - Num times in past yr
+> Covariate                       | SCOMIN                          | Involvement in community activities
+> Covariate                       | SSOCCST                         | Social cost of punishment
+> --------------------+---------------------+-------------------------------------
+> *******************************************************************************/
+. 
+. save "D:\Papers\Health and Waiver\Data\Cleaned\pre-imputation.dta", replace
+file D:\Papers\Health and Waiver\Data\Cleaned\pre-imputation.dta saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  D:\Papers\Health and Waiver\Log Output\SECTION 1 - Data Reading and Transformations.log
+  log type:  text
+ closed on:  26 May 2025, 09:38:35
+-----------------------------------------------------------------------------------------------------------------------------------------------------

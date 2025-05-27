@@ -1,0 +1,266 @@
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Papers\Health and Waiver\Log Output\SECTION 5 - Estimates wo Imputation.log
+  log type:  text
+ opened on:  26 May 2025, 14:54:46
+
+. 
+. use "D:\Papers\Health and Waiver\Data\PtDImputed.dta", clear
+(Research on Pathways to Desistance [Maricopa County, AZ and Philadelphia County,)
+
+.         // cleaned and imputed data
+.         
+. **GLOBAL MACRO FOR COVARIATES
+. global cov SSITE SAGE SSGEND i.SETHN_R SPAEDUC SREL198 AGE_1_PRI_B4_BL SSROPRV ///
+>         SEXPVIC SHEADIN SREL149 SDEM33 SDEM42 SCADPRE SDEM49 SROUT SPRINFL SSOCAP2 ///
+>         SNEISOC SMORDIS SMOTSUC SSUPAGG SAGGOFF SNEARPRO SINCOFF SDRUGOFF SIMPULS ///
+>         SFUTURE SMEDSEV SCONSID SSOCCST
+
+.                 
+. **ATE - WEIGHTED RESULTS, WITHOUT IMPUTATION
+.         // balance estimates same as above
+. teffects ipwra (HEALTH_avg) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  1.295e-17  
+Iteration 1:   EE criterion =  1.538e-31  
+
+Treatment-effects estimation                    Number of obs     =      1,101
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+     HEALTH_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |   .0387765   .0625917     0.62   0.536     -.083901    .1614539
+      (2 vs 1)  |   .1472009   .0711066     2.07   0.038     .0078345    .2865673
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |     3.1183   .0585738    53.24   0.000     3.003497    3.233103
+---------------------------------------------------------------------------------
+
+. teffects ipwra (DEP_avg) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.338e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+        DEP_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.0982179   .0676938    -1.45   0.147    -.2308954    .0344596
+      (2 vs 1)  |  -.1055185   .0686473    -1.54   0.124    -.2400648    .0290277
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .4585046   .0628257     7.30   0.000     .3353685    .5816407
+---------------------------------------------------------------------------------
+
+. teffects ipwra (ANX_avg) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.342e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+        ANX_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.1428351   .0620957    -2.30   0.021    -.2645405   -.0211297
+      (2 vs 1)  |  -.1399632   .0653543    -2.14   0.032    -.2680554   -.0118711
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |    .432376   .0598241     7.23   0.000     .3151229    .5496292
+---------------------------------------------------------------------------------
+
+. 
+.         *Transformed depression and anxiety measures
+.                 // health not transformed
+.         teffects ipwra (sqrt_DEP_avg) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.333e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+   sqrt_DEP_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.0506435   .0443764    -1.14   0.254    -.1376197    .0363326
+      (2 vs 1)  |  -.0319323   .0487954    -0.65   0.513    -.1275695    .0637049
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .5295926   .0406186    13.04   0.000     .4499816    .6092036
+---------------------------------------------------------------------------------
+
+.         teffects ipwra (sqrt_ANX_avg) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.345e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+   sqrt_ANX_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.0959981   .0416896    -2.30   0.021    -.1777081   -.0142881
+      (2 vs 1)  |  -.0921463   .0471244    -1.96   0.051    -.1845085    .0002159
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .5336407   .0390613    13.66   0.000     .4570819    .6101995
+---------------------------------------------------------------------------------
+
+. 
+. *ATE - WEIGHTED RESULTS WITH DOUBLY ROBUST ESTIMATORS, WITHOUT IMPUTATION
+. teffects ipwra (HEALTH_avg $cov) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  1.295e-17  
+Iteration 1:   EE criterion =  2.991e-31  
+
+Treatment-effects estimation                    Number of obs     =      1,101
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+     HEALTH_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |   .0436074   .0442155     0.99   0.324    -.0430533    .1302681
+      (2 vs 1)  |   .1491301   .0574029     2.60   0.009     .0366225    .2616377
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   3.118535   .0392809    79.39   0.000     3.041546    3.195524
+---------------------------------------------------------------------------------
+
+. teffects ipwra (DEP_avg $cov) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.395e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+        DEP_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.0784288   .0391383    -2.00   0.045    -.1551384   -.0017191
+      (2 vs 1)  |  -.0744677   .0458408    -1.62   0.104    -.1643141    .0153786
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .4287885   .0347865    12.33   0.000     .3606082    .4969687
+---------------------------------------------------------------------------------
+
+. teffects ipwra (ANX_avg $cov) (TRANSFER $cov), ate control(1)  
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.388e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+        ANX_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.1250716   .0362988    -3.45   0.001     -.196216   -.0539272
+      (2 vs 1)  |   -.115365    .041966    -2.75   0.006    -.1976169   -.0331131
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .4105343   .0334758    12.26   0.000      .344923    .4761457
+---------------------------------------------------------------------------------
+
+. 
+.         *Transformed depression and anxiety measures
+.                 // health not transformed
+.         teffects ipwra (sqrt_DEP_avg $cov) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.358e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+   sqrt_DEP_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.0410802   .0291026    -1.41   0.158    -.0981202    .0159598
+      (2 vs 1)  |  -.0155218    .037825    -0.41   0.682    -.0896575    .0586139
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .5128789   .0255914    20.04   0.000     .4627207    .5630371
+---------------------------------------------------------------------------------
+
+.         teffects ipwra (sqrt_ANX_avg $cov) (TRANSFER $cov), ate control(1)
+
+Iteration 0:   EE criterion =  5.168e-16  
+Iteration 1:   EE criterion =  1.369e-29  
+
+Treatment-effects estimation                    Number of obs     =      1,100
+Estimator      : IPW regression adjustment
+Outcome model  : linear
+Treatment model: (multinomial) logit
+---------------------------------------------------------------------------------
+                |               Robust
+   sqrt_ANX_avg | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+ATE             |
+       TRANSFER |
+      (0 vs 1)  |  -.0940477   .0267789    -3.51   0.000    -.1465334   -.0415619
+      (2 vs 1)  |  -.0765123   .0344973    -2.22   0.027    -.1441257   -.0088988
+----------------+----------------------------------------------------------------
+POmean          |
+       TRANSFER |
+             1  |   .5279439    .023824    22.16   0.000     .4812496    .5746382
+---------------------------------------------------------------------------------
+
+.         
+. log close
+      name:  <unnamed>
+       log:  D:\Papers\Health and Waiver\Log Output\SECTION 5 - Estimates wo Imputation.log
+  log type:  text
+ closed on:  26 May 2025, 14:55:07
+-----------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,469 @@
+----------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\Papers\Health and Waiver\Log Output\SECTION 8 - Imputed Outcomes.log
+  log type:  text
+ opened on:  27 May 2025, 10:34:19
+
+. 
+. use "E:\Papers\Health and Waiver\Data\Cleaned\pre-imputation.dta", clear
+(Research on Pathways to Desistance [Maricopa County, AZ and Philadelphia County,)
+
+. 
+. *MISSINGNESS
+. egen outcomemiss = rownonmiss(HEALTH_avg DEP_avg ANX_avg)
+
+.         // 32 with no outcome information
+.         // 42 with 1 outcome
+.         // 47 with 2 outcomes
+.         
+. **DEPENDENT VARIABLE FLAG
+. gen dvflag = 1 if HEALTH_avg !=. & DEP_avg !=. & ANX_avg !=.
+(121 missing values generated)
+
+.         replace dvflag = 0 if dvflag != 1
+(121 real changes made)
+
+. 
+.         
+. *MULTIPLE IMPUTATION
+. mi set wide
+
+. 
+. mi register imputed SPAEDUC SREL198 SSROPRV SEXPVIC SDEM42 SROUT SPRINFL SNEISOC ///
+>         SMORDIS SSUPAGG SAGGOFF SINCOFF SDRUGOFF SIMPULS SFUTURE SMEDSEV SCONSID ///
+>         SMOTSUC SCOMIN SSOCCST HEALTH_avg DEP_avg ANX_avg // 
+
+.                 // registering variables with missingness
+. mi register regular SSITE SAGE SSGEND SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 ///
+>         SDEM33 SCADPRE SDEM49 SSOCAP2 SNEARPRO // 
+
+.                 // registering variables with no missingness
+.                 
+. mi impute chained ///
+>         (logit) SREL198 SDEM42 SMEDSEV SDRUGOFF SAGGOFF SINCOFF /// discrete variables
+>         (truncreg, ll(1) ul(6)) SPAEDUC ///
+>         (truncreg, ll(0) ul(1)) SSROPRV ///
+>         (truncreg, ll(0) ul(6)) SEXPVIC /// 
+>         (truncreg, ll(1) ul(5)) SPRINFL SSUPAGG SIMPULS SCONSID SMOTSUC SSOCCST SROUT ///
+>         (truncreg, ll(1) ul(4)) SNEISOC SFUTURE HEALTH_avg /// 
+>         (truncreg, ll(1) ul(3)) SMORDIS /// 
+>         (truncreg, ll(0) ul(4)) SCOMIN DEP_avg ANX_avg  /// truncated variables
+>         = SSITE SAGE SSGEND SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE ///
+>                 SDEM49 SSOCAP2 SNEARPRO, /// non-missing variables
+>         add(25) rseed(1234) // 25 imputations, seed set for repetition
+
+Conditional models:
+           SMOTSUC: truncreg SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+           SSOCCST: truncreg SSOCCST SMOTSUC i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+            SDEM42: logit SDEM42 SMOTSUC SSOCCST SNEISOC i.SAGGOFF i.SINCOFF SSROPRV SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO
+           SNEISOC: truncreg SNEISOC SMOTSUC SSOCCST i.SDEM42 i.SAGGOFF i.SINCOFF SSROPRV SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(4)
+           SAGGOFF: logit SAGGOFF SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SINCOFF SSROPRV SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO
+           SINCOFF: logit SINCOFF SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF SSROPRV SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO
+           SSROPRV: truncreg SSROPRV SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SEXPVIC
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(0) ul(1)
+           SEXPVIC: truncreg SEXPVIC SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(0) ul(6)
+           SSUPAGG: truncreg SSUPAGG SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+           SIMPULS: truncreg SIMPULS SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+           SCONSID: truncreg SCONSID SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+           SMORDIS: truncreg SMORDIS SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SROUT SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(3)
+             SROUT: truncreg SROUT SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SCOMIN i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+            SCOMIN: truncreg SCOMIN SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT i.SMEDSEV SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(0) ul(4)
+           SMEDSEV: logit SMEDSEV SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN SFUTURE i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO
+           SFUTURE: truncreg SFUTURE SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV i.SREL198
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(4)
+           SREL198: logit SREL198 SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE
+                     SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO
+           SPRINFL: truncreg SPRINFL SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE
+                     i.SREL198 i.SDRUGOFF SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(5)
+          SDRUGOFF: logit SDRUGOFF SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE
+                     i.SREL198 SPRINFL SPAEDUC DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO
+           SPAEDUC: truncreg SPAEDUC SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE
+                     i.SREL198 SPRINFL i.SDRUGOFF DEP_avg ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(6)
+           DEP_avg: truncreg DEP_avg SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE
+                     i.SREL198 SPRINFL i.SDRUGOFF SPAEDUC ANX_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(0) ul(4)
+           ANX_avg: truncreg ANX_avg SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF SSROPRV
+                     SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV SFUTURE
+                     i.SREL198 SPRINFL i.SDRUGOFF SPAEDUC DEP_avg HEALTH_avg SSITE SAGE SSGEND
+                     SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(0) ul(4)
+        HEALTH_avg: truncreg HEALTH_avg SMOTSUC SSOCCST i.SDEM42 SNEISOC i.SAGGOFF i.SINCOFF
+                     SSROPRV SEXPVIC SSUPAGG SIMPULS SCONSID SMORDIS SROUT SCOMIN i.SMEDSEV
+                     SFUTURE i.SREL198 SPRINFL i.SDRUGOFF SPAEDUC DEP_avg ANX_avg SSITE SAGE
+                     SSGEND SETHN_R AGE_1_PRI_B4_BL SHEADIN SREL149 SDEM33 SCADPRE SDEM49 SSOCAP2
+                     SNEARPRO , ll(1) ul(4)
+
+Performing chained iterations ...
+
+Multivariate imputation                     Imputations =       25
+Chained equations                                 added =       25
+Imputed: m=1 through m=25                       updated =        0
+
+Initialization: monotone                     Iterations =      250
+                                                burn-in =       10
+
+           SREL198: logistic regression
+            SDEM42: logistic regression
+           SMEDSEV: logistic regression
+          SDRUGOFF: logistic regression
+           SAGGOFF: logistic regression
+           SINCOFF: logistic regression
+           SPAEDUC: truncated regression
+           SSROPRV: truncated regression
+           SEXPVIC: truncated regression
+           SPRINFL: truncated regression
+           SSUPAGG: truncated regression
+           SIMPULS: truncated regression
+           SCONSID: truncated regression
+           SMOTSUC: truncated regression
+           SSOCCST: truncated regression
+             SROUT: truncated regression
+           SNEISOC: truncated regression
+           SFUTURE: truncated regression
+        HEALTH_avg: truncated regression
+           SMORDIS: truncated regression
+            SCOMIN: truncated regression
+           DEP_avg: truncated regression
+           ANX_avg: truncated regression
+
+------------------------------------------------------------------
+                   |               Observations per m             
+                   |----------------------------------------------
+          Variable |   Complete   Incomplete   Imputed |     Total
+-------------------+-----------------------------------+----------
+           SREL198 |       1343           11        11 |      1354
+            SDEM42 |       1352            2         2 |      1354
+           SMEDSEV |       1346            8         8 |      1354
+          SDRUGOFF |       1329           25        25 |      1354
+           SAGGOFF |       1351            3         3 |      1354
+           SINCOFF |       1351            3         3 |      1354
+           SPAEDUC |       1329           25        25 |      1354
+           SSROPRV |       1351            3         3 |      1354
+           SEXPVIC |       1351            3         3 |      1354
+           SPRINFL |       1339           15        15 |      1354
+           SSUPAGG |       1351            3         3 |      1354
+           SIMPULS |       1351            3         3 |      1354
+           SCONSID |       1351            3         3 |      1354
+           SMOTSUC |       1353            1         1 |      1354
+           SSOCCST |       1353            1         1 |      1354
+             SROUT |       1350            4         4 |      1354
+           SNEISOC |       1352            2         2 |      1354
+           SFUTURE |       1346            8         8 |      1354
+        HEALTH_avg |       1275           79        79 |      1354
+           SMORDIS |       1351            3         3 |      1354
+            SCOMIN |       1350            4         4 |      1354
+           DEP_avg |       1280           74        74 |      1354
+           ANX_avg |       1280           74        74 |      1354
+------------------------------------------------------------------
+(Complete + Incomplete = Total; Imputed is the minimum across m
+ of the number of filled-in observations.)
+
+.                 // 25 imputations from recommended metrics in Johnson & Young (2011)
+.                 
+. **GLOBAL MACRO FOR COVARIATES
+. global cov SMEDSEV SHEADIN /// key covariates
+>         i.SETHN_R SAGE SSGEND SSITE /// demographics
+>         SPAEDUC SREL198 SCADPRE SPRINFL /// parent and peer indicators
+>         SSROPRV SAGGOFF SDRUGOFF SINCOFF AGE_1_PRI_B4_BL /// delinquency
+>         SREL149 SDEM33 SDEM42 SDEM49 SNEISOC SROUT /// school and home indicators
+>         SSUPAGG SEXPVIC SSOCAP2 SMORDIS SMOTSUC SNEARPRO SIMPULS SFUTURE SCONSID SSOCCST
+
+.                 
+. *IPW ESTIMATION
+. quietly: teffects ipwra (HEALTH_avg) (TRANSFER $cov), ate control(1)
+
+.         predict ps
+(option te assumed; treatment effect)
+
+.                 gen iptweight = . 
+(1,354 missing values generated)
+
+.                         replace iptweight = (1 / (ps)) if TRANSFER == 1
+(222 real changes made)
+
+.                                 // comparison group weights
+.                         replace iptweight = (1 / (1-ps)) if TRANSFER == 0 | TRANSFER == 2
+(1,020 real changes made)
+
+.                                 // treatment groups
+.                 
+. *POISSON DISTRIBUTION MODELS
+. mi svyset [pweight=iptweight]
+
+Sampling weights: iptweight
+             VCE: linearized
+     Single unit: missing
+        Strata 1: <one>
+ Sampling unit 1: <observations>
+           FPC 1: <zero>
+
+. 
+. mi estimate: svy: poisson HEALTH_avg ib1.TRANSFER $cov
+
+Multiple-imputation estimates                   Imputations       =         25
+Survey: Poisson regression                      Number of obs     =      1,242
+
+Number of strata  =         1                   Population size   = 6,786.2691
+Number of PSUs    =     1,242
+                                                Average RVI       =     0.0537
+                                                Largest FMI       =     0.1099
+                                                Complete DF       =       1241
+DF adjustment:   Small sample                   DF:     min       =     714.73
+                                                        avg       =   1,095.92
+                                                        max       =   1,233.70
+Model F test:       Equal FMI                   F(  35, 1233.9)   =       1.92
+Within VCE type:   Linearized                   Prob > F          =     0.0011
+
+---------------------------------------------------------------------------------
+     HEALTH_avg | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+       TRANSFER |
+             0  |   .0172423   .0152552     1.13   0.259    -.0126884     .047173
+             2  |   .0318167   .0162217     1.96   0.050    -.0000105    .0636438
+                |
+        SMEDSEV |   .0085425   .0216979     0.39   0.694    -.0340306    .0511157
+        SHEADIN |   .0291704   .0197429     1.48   0.140    -.0095714    .0679122
+                |
+        SETHN_R |
+      2. Black  |   .0080462   .0280752     0.29   0.774    -.0470386    .0631311
+   3. Hispanic  |  -.0147431   .0241704    -0.61   0.542    -.0621647    .0326785
+      4. Other  |  -.0830722   .0562091    -1.48   0.140    -.1934081    .0272638
+                |
+           SAGE |   -.006315   .0109402    -0.58   0.564    -.0277793    .0151492
+         SSGEND |   .0960926   .0348817     2.75   0.006     .0276586    .1645267
+          SSITE |   .0553429     .02627     2.11   0.035     .0037975    .1068883
+        SPAEDUC |   .0021242    .010251     0.21   0.836    -.0179899    .0222382
+        SREL198 |   .0106377   .0226184     0.47   0.638    -.0337438    .0550193
+        SCADPRE |  -.0018343   .0045505    -0.40   0.687    -.0107621    .0070935
+        SPRINFL |   .0012347   .0122435     0.10   0.920    -.0227865     .025256
+        SSROPRV |   .0435863   .0727019     0.60   0.549    -.0990541    .1862266
+        SAGGOFF |  -.0089785   .0259802    -0.35   0.730     -.059953     .041996
+       SDRUGOFF |  -.0080647   .0208724    -0.39   0.699    -.0490155    .0328861
+        SINCOFF |  -.0022489   .0216145    -0.10   0.917    -.0446556    .0401577
+AGE_1_PRI_B4_BL |   .0022172   .0064843     0.34   0.732    -.0105067    .0149412
+        SREL149 |    .022894   .0202185     1.13   0.258    -.0167773    .0625652
+         SDEM33 |  -.0019494   .0192841    -0.10   0.919    -.0397848    .0358859
+         SDEM42 |  -.0084213    .022917    -0.37   0.713    -.0533887    .0365461
+         SDEM49 |  -.0377975   .0196954    -1.92   0.055    -.0764407    .0008456
+        SNEISOC |  -.0069038   .0143409    -0.48   0.630     -.035041    .0212334
+          SROUT |   .0189341   .0117024     1.62   0.106    -.0040256    .0418937
+        SSUPAGG |  -.0120326   .0116548    -1.03   0.302       -.0349    .0108347
+        SEXPVIC |  -.0096147   .0080274    -1.20   0.231    -.0253653    .0061359
+        SSOCAP2 |   .0407426   .0186795     2.18   0.029     .0040878    .0773973
+        SMORDIS |   .0070664   .0260005     0.27   0.786    -.0439447    .0580774
+        SMOTSUC |   .0086011   .0173858     0.49   0.621    -.0255109    .0427131
+       SNEARPRO |  -.0147378   .0089655    -1.64   0.101    -.0323326    .0028569
+        SIMPULS |   .0314499   .0122536     2.57   0.010     .0074077    .0554922
+        SFUTURE |   .0215288   .0181959     1.18   0.237     -.014195    .0572526
+        SCONSID |   -.011977   .0098793    -1.21   0.226    -.0313643    .0074103
+        SSOCCST |  -.0158313    .011487    -1.38   0.169    -.0383811    .0067186
+          _cons |   .9180952   .1989445     4.61   0.000     .5277601     1.30843
+---------------------------------------------------------------------------------
+
+. mi estimate: svy: poisson DEP_avg ib1.TRANSFER $cov
+
+Multiple-imputation estimates                   Imputations       =         25
+Survey: Poisson regression                      Number of obs     =      1,242
+
+Number of strata  =         1                   Population size   = 6,786.2691
+Number of PSUs    =     1,242
+                                                Average RVI       =     0.0461
+                                                Largest FMI       =     0.0684
+                                                Complete DF       =       1241
+DF adjustment:   Small sample                   DF:     min       =     944.87
+                                                        avg       =   1,142.29
+                                                        max       =   1,228.62
+Model F test:       Equal FMI                   F(  35, 1235.2)   =       2.95
+Within VCE type:   Linearized                   Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------
+        DEP_avg | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+       TRANSFER |
+             0  |  -.2594737   .1064288    -2.44   0.015    -.4683208   -.0506265
+             2  |  -.1096174   .1274962    -0.86   0.390    -.3598258    .1405909
+                |
+        SMEDSEV |   .3051163   .1759786     1.73   0.083    -.0401621    .6503948
+        SHEADIN |   .0718409   .1343813     0.53   0.593     -.191815    .3354968
+                |
+        SETHN_R |
+      2. Black  |  -.1243012   .2197358    -0.57   0.572    -.5554002    .3067977
+   3. Hispanic  |  -.0215581   .1996755    -0.11   0.914    -.4133186    .3702025
+      4. Other  |   .3895913   .2349602     1.66   0.098    -.0713859    .8505684
+                |
+           SAGE |   .0064068   .0758958     0.08   0.933    -.1425023    .1553159
+         SSGEND |  -.0897946   .1773396    -0.51   0.613    -.4377208    .2581315
+          SSITE |  -.2682524   .1905079    -1.41   0.159    -.6420125    .1055076
+        SPAEDUC |  -.0481672   .0800595    -0.60   0.548    -.2052405     .108906
+        SREL198 |  -.0546164   .1681325    -0.32   0.745    -.3844938     .275261
+        SCADPRE |  -.0304794   .0334829    -0.91   0.363    -.0961743    .0352155
+        SPRINFL |   -.065005   .0905261    -0.72   0.473    -.2426172    .1126072
+        SSROPRV |   1.075598    .498608     2.16   0.031      .097368    2.053828
+        SAGGOFF |   .1289948   .2439505     0.53   0.597    -.3496205      .60761
+       SDRUGOFF |  -.1809522   .1722434    -1.05   0.294     -.518974    .1570696
+        SINCOFF |  -.0101389   .1809671    -0.06   0.955    -.3651969    .3449191
+AGE_1_PRI_B4_BL |   .1334196   .0432132     3.09   0.002     .0486175    .2182216
+        SREL149 |  -.1954913   .1439726    -1.36   0.175    -.4779591    .0869765
+         SDEM33 |   .1464285   .1481636     0.99   0.323    -.1442586    .4371155
+         SDEM42 |  -.1815608   .1699906    -1.07   0.286    -.5150938    .1519722
+         SDEM49 |   .0959918   .1562384     0.61   0.539    -.2105346    .4025182
+        SNEISOC |   .2467902   .0889813     2.77   0.006     .0722042    .4213762
+          SROUT |  -.1411842   .0939182    -1.50   0.133    -.3254549    .0430865
+        SSUPAGG |   .1547158   .0932471     1.66   0.097      -.02823    .3376617
+        SEXPVIC |  -.0055291   .0599327    -0.09   0.927    -.1231201    .1120619
+        SSOCAP2 |  -.3443255   .1386009    -2.48   0.013    -.6162599    -.072391
+        SMORDIS |   .3908829   .1825824     2.14   0.032     .0326639     .749102
+        SMOTSUC |  -.0496935   .1265069    -0.39   0.695    -.2978912    .1985041
+       SNEARPRO |   .0486162   .0663794     0.73   0.464     -.081618    .1788504
+        SIMPULS |  -.1263822   .0836409    -1.51   0.131     -.290487    .0377226
+        SFUTURE |   .1214173   .1303138     0.93   0.352    -.1343205    .3771552
+        SCONSID |   .1176877   .0839019     1.40   0.161    -.0469341    .2823094
+        SSOCCST |   .1537716   .0889263     1.73   0.084    -.0207199    .3282632
+          _cons |  -3.557571   1.482085    -2.40   0.017    -6.465597   -.6495445
+---------------------------------------------------------------------------------
+
+. mi estimate: svy: poisson ANX_avg ib1.TRANSFER $cov             
+
+Multiple-imputation estimates                   Imputations       =         25
+Survey: Poisson regression                      Number of obs     =      1,242
+
+Number of strata  =         1                   Population size   = 6,786.2691
+Number of PSUs    =     1,242
+                                                Average RVI       =     0.0455
+                                                Largest FMI       =     0.0825
+                                                Complete DF       =       1241
+DF adjustment:   Small sample                   DF:     min       =     863.65
+                                                        avg       =   1,147.68
+                                                        max       =   1,225.37
+Model F test:       Equal FMI                   F(  35, 1235.3)   =       2.97
+Within VCE type:   Linearized                   Prob > F          =     0.0000
+
+---------------------------------------------------------------------------------
+        ANX_avg | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+       TRANSFER |
+             0  |  -.3665776    .115432    -3.18   0.002    -.5930621    -.140093
+             2  |  -.3189277   .1370355    -2.33   0.020    -.5878128   -.0500425
+                |
+        SMEDSEV |   .2785243   .2074894     1.34   0.180    -.1285599    .6856085
+        SHEADIN |   .1022238   .1433183     0.71   0.476    -.1789849    .3834325
+                |
+        SETHN_R |
+      2. Black  |  -.1333106    .232123    -0.57   0.566    -.5887146    .3220935
+   3. Hispanic  |  -.1785337    .207603    -0.86   0.390    -.5858803    .2288128
+      4. Other  |   .3313716   .2806032     1.18   0.238    -.2191628    .8819061
+                |
+           SAGE |    .044019   .0776908     0.57   0.571    -.1084096    .1964477
+         SSGEND |  -.0998366   .2203698    -0.45   0.651    -.5321804    .3325073
+          SSITE |  -.0242285   .2047216    -0.12   0.906    -.4258726    .3774155
+        SPAEDUC |  -.0024088   .0762242    -0.03   0.975    -.1519631    .1471455
+        SREL198 |  -.1522716   .1673716    -0.91   0.363    -.4806495    .1761062
+        SCADPRE |  -.0151526   .0366707    -0.41   0.680    -.0870992    .0567939
+        SPRINFL |   .0021789   .0886896     0.02   0.980    -.1718426    .1762004
+        SSROPRV |   .6445004   .5103735     1.26   0.207    -.3568083    1.645809
+        SAGGOFF |   .1604391   .2145679     0.75   0.455    -.2605418      .58142
+       SDRUGOFF |  -.3401685   .1698109    -2.00   0.045    -.6733661   -.0069709
+        SINCOFF |   .1712717   .1782316     0.96   0.337    -.1784127    .5209561
+AGE_1_PRI_B4_BL |   .1255266   .0445389     2.82   0.005     .0381225    .2129306
+        SREL149 |  -.1444255   .1431629    -1.01   0.313    -.4253015    .1364506
+         SDEM33 |   .1074667   .1453337     0.74   0.460    -.1776745    .3926079
+         SDEM42 |  -.0880664   .1708683    -0.52   0.606    -.4233147    .2471818
+         SDEM49 |  -.0036816   .1623844    -0.02   0.982    -.3222646    .3149014
+        SNEISOC |   .2449274   .0922446     2.66   0.008     .0639444    .4259105
+          SROUT |  -.1230249   .1167789    -1.05   0.292    -.3521399      .10609
+        SSUPAGG |   .1212246   .1002213     1.21   0.227    -.0754039    .3178531
+        SEXPVIC |  -.0163675   .0531846    -0.31   0.758    -.1207315    .0879965
+        SSOCAP2 |  -.2414691   .1432512    -1.69   0.092    -.5225266    .0395885
+        SMORDIS |   .3304473    .191101     1.73   0.084    -.0444919    .7053866
+        SMOTSUC |   .0969828   .1424824     0.68   0.496    -.1825601    .3765258
+       SNEARPRO |   .0290715   .0646336     0.45   0.653    -.0977354    .1558783
+        SIMPULS |  -.1682169   .0937442    -1.79   0.073    -.3521493    .0157155
+        SFUTURE |   .0623883   .1333827     0.47   0.640    -.1994039    .3241804
+        SCONSID |   .2169677   .0802632     2.70   0.007     .0594876    .3744478
+        SSOCCST |   .0086517   .0801633     0.11   0.914    -.1486363    .1659397
+          _cons |    -4.7232    1.53263    -3.08   0.002    -7.730323   -1.716077
+---------------------------------------------------------------------------------
+
+. 
+. log close 
+      name:  <unnamed>
+       log:  E:\Papers\Health and Waiver\Log Output\SECTION 8 - Imputed Outcomes.log
+  log type:  text
+ closed on:  27 May 2025, 10:58:44
+----------------------------------------------------------------------------------------------------
